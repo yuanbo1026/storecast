@@ -27,40 +27,42 @@ public class ImageSearchPresenter {
     }
 
     public void searchImages(String phrase, int page, int pageSize){
+        showLoading();
         imageRepository.searchImages(phrase,page,pageSize)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<List<Image>>() {
                     @Override
                     public void onCompleted() {
-
+                        hideLoading();
                     }
 
                     @Override
                     public void onError(Throwable e) {
-
+                        hideLoading();
+                        showErrorMessage(e.toString());
                     }
 
                     @Override
                     public void onNext(List<Image> images) {
-
+                        setAdapter(images);
                     }
                 });
     }
 
     public void showLoading(){
-
+        imageSearchActivity.showLoading();
     }
 
     public void hideLoading(){
-
+        imageSearchActivity.hideLoading();
     }
 
     public  void showErrorMessage(String message){
-
+        imageSearchActivity.showErrorMessage(message);
     }
 
-    public void setAdapter(){
-
+    public void setAdapter(List<Image> images){
+        imageSearchActivity.setAdapter(images);
     }
 }
