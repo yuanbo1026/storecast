@@ -1,12 +1,12 @@
 package de.code.challenge.view.adpater;
 
 import android.content.Context;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -26,10 +26,10 @@ import de.hdodenhof.circleimageview.CircleImageView;
  * Created by bo.yuan on 2017/3/23
  */
 @Singleton
-public class ImageRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
+public class ImageRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final LayoutInflater layoutInflater;
     private Context context;
-    private List<Image> imageList  = new ArrayList<>();
+    private List<Image> imageList = new ArrayList<>();
 
     @Inject
     public ImageRecyclerViewAdapter(Context context) {
@@ -47,12 +47,31 @@ public class ImageRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         ViewHolder viewHolder = (ViewHolder) holder;
         final Image image = this.imageList.get(position);
-        viewHolder.image_id.setText(image.getId());
-        viewHolder.image_title.setText(image.getTitle());
-        Picasso.with(context).load(image.getUri()).fit()
-                .placeholder(R.drawable.default_image)
-                .into(viewHolder.image);
-        holder.itemView.setOnClickListener(v -> Toast.makeText(context,image.getCaption(),Toast.LENGTH_SHORT).show());
+        if (image != null) {
+            viewHolder.image_id.setText(image.getId() == null ? "" : context.getString(R.string.image_id_text) + image.getId());
+            viewHolder.image_title.setText(image.getTitle() == null ? "" : context.getString(R.string.image_title_text) + image.getTitle());
+            if (image.getUri() == null) {
+                viewHolder.image.setImageResource(R.drawable.default_image);
+            } else {
+                Picasso.with(context).load(image.getUri()).fit()
+                        .placeholder(R.drawable.default_image)
+                        .into(viewHolder.image);
+            }
+        } else {
+            viewHolder.image_id.setText("");
+            viewHolder.image_title.setText("");
+            viewHolder.image.setImageResource(R.drawable.default_image);
+        }
+
+        holder.itemView.setOnClickListener(v -> {
+            assert image != null;
+            showAlertDialog(image.getCaption() != null ? image.getCaption() : "");
+        });
+    }
+
+    public void setItemToPosition(Image image, int itemPosition) {
+        this.imageList.set(itemPosition, image);
+        notifyItemChanged(itemPosition);
     }
 
     @Override
@@ -60,12 +79,22 @@ public class ImageRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
         return (this.imageList != null) ? this.imageList.size() : 0;
     }
 
-    public void addImages(List<Image> searchResultList){
+    private void showAlertDialog(String caption) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage(caption);
+        builder.setPositiveButton(R.string.ok, (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss());
+        AlertDialog dialog = builder.create();
+        dialog.setCancelable(false);
+        dialog.show();
+    }
+
+    public void addImages(List<Image> searchResultList) {
         this.imageList.addAll(searchResultList);
         notifyDataSetChanged();
     }
 
-    public void clearImages(){
+    public void clearImages() {
         this.imageList.clear();
         notifyDataSetChanged();
     }

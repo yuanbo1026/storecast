@@ -1,6 +1,5 @@
 package de.code.challenge.view.activity;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -43,9 +42,7 @@ public class ImageSearchActivity extends AppCompatActivity {
     @Inject
     ImageRecyclerViewAdapter imageSearchAdapter;
 
-    private ProgressDialog mProgressDialog;
-
-    private String searchKey;
+    private String searchKey="mobile";
     private int page = 1;
     private final static int perPage = 10;
     private boolean isLoading = false;
@@ -57,10 +54,8 @@ public class ImageSearchActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_search);
         setSupportActionBar(toolbar);
-
         unbinder = ButterKnife.bind(this);
         DaggerImageSearchComponent.builder().imageSearchModule(new ImageSearchModule(this)).build().inject(this);
-        initProgressDialog();
         setupPagination();
     }
 
@@ -92,7 +87,7 @@ public class ImageSearchActivity extends AppCompatActivity {
         image_recyclerview.setLayoutManager(layoutManager);
 
         paginate = Paginate.with(image_recyclerview, callbacks)
-                .setLoadingTriggerThreshold(perPage)
+                .setLoadingTriggerThreshold(2)
                 .build();
     }
 
@@ -115,28 +110,17 @@ public class ImageSearchActivity extends AppCompatActivity {
         }
     };
 
-    private void initProgressDialog(){
-        mProgressDialog = new ProgressDialog(this);
-        mProgressDialog.setIndeterminate(true);
-        mProgressDialog.setCancelable(false);
-        mProgressDialog.setCanceledOnTouchOutside(false);
-        mProgressDialog.setMessage(getString(R.string.loading));
+    public void setAdapter(List<Image> images) {
+        imageSearchAdapter.addImages(images);
+        isLoading = false;
+    }
+
+    public void updateItemOnPosition(int position, Image image){
+        imageSearchAdapter.setItemToPosition(image,position);
     }
 
     public void showErrorMessage(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-    }
-
-    public void showLoading() {
-        if (mProgressDialog != null) {
-            mProgressDialog.show();
-        }
-    }
-
-    public void hideLoading() {
-        if (mProgressDialog != null && mProgressDialog.isShowing()) {
-            mProgressDialog.dismiss();
-        }
     }
 
     private void hideSoftKeyboard(){
@@ -145,11 +129,6 @@ public class ImageSearchActivity extends AppCompatActivity {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
-    }
-
-    public void setAdapter(List<Image> images) {
-        imageSearchAdapter.addImages(images);
-        isLoading = false;
     }
 
     public String getSearchKey() {

@@ -1,5 +1,6 @@
 package de.code.challenge.presenter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -26,43 +27,56 @@ public class ImageSearchPresenter {
         this.imageSearchActivity = imageSearchActivity;
     }
 
-    public void searchImages(String phrase, int page, int pageSize){
-        showLoading();
-        imageRepository.searchImages(phrase,page,pageSize)
+    public void searchImages(String phrase, int page, int pageSize) {
+        setupAdapterWithNullImages(pageSize);
+        imageRepository.searchImages(phrase, page, pageSize)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<List<Image>>() {
                     @Override
                     public void onCompleted() {
-                        hideLoading();
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        hideLoading();
                         showErrorMessage(e.toString());
                     }
 
                     @Override
                     public void onNext(List<Image> images) {
-                        setAdapter(images);
+                        updateAdapterItemOnPosition(images,page);
                     }
                 });
     }
 
-    public void showLoading(){
-        imageSearchActivity.showLoading();
+    private void setupAdapterWithNullImages(int itemSize) {
+        List<Image> images = new ArrayList<>(itemSize);
+        for (int i = 0; i < itemSize; i++) {
+            Image image = new Image();
+            images.add(image);
+        }
+        setAdapter(images);
     }
 
-    public void hideLoading(){
-        imageSearchActivity.hideLoading();
+
+    private void updateAdapterItemOnPosition(List<Image> images, int page) {
+        if (images != null && images.size() > 0) {
+            for (int i = 0; i < images.size(); i++) {
+                Image image = images.get(i);
+                imageSearchActivity.updateItemOnPosition(getItemPosition(page, i), image);
+            }
+        }
+    }
+    //page is 1 by default
+    private int getItemPosition(int page, int index) {
+        return ((page - 1) * 10) + index;
     }
 
-    public  void showErrorMessage(String message){
+    private void showErrorMessage(String message) {
         imageSearchActivity.showErrorMessage(message);
     }
 
-    public void setAdapter(List<Image> images){
+    private void setAdapter(List<Image> images) {
         imageSearchActivity.setAdapter(images);
     }
 }

@@ -33,8 +33,7 @@ public class ImageSearchModule {
     @Provides
     @Singleton
     public ImageSearchApi provideImageSearchApi(RetrofitClientFactory retrofitClientFactory){
-        ImageSearchApi imageSearchApi = retrofitClientFactory.createInstance(ImageSearchApi.class);
-        return imageSearchApi;
+        return retrofitClientFactory.createInstance(ImageSearchApi.class);
     }
 
     @Provides
